@@ -50,8 +50,10 @@ jobs:
 
       - name: Install Dependencies
         run: |
-          brew uninstall --ignore-dependencies dpkg
+          # Tambahkan || true supaya kalau dpkg belum ada, build tidak berhenti
+          brew uninstall --ignore-dependencies dpkg || true
           brew install ldid make
+          # Baru install dpkg versi yang kita inginkan
           brew install https://raw.githubusercontent.com/uronchu/homebrew-tap/master/Formula/dpkg.rb
 
       - name: Set PATH environment variable
