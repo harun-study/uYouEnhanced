@@ -50,18 +50,17 @@ jobs:
 
       - name: Install Dependencies
         run: |
-          # Hapus yang lama kalau ada (abaikan kalau error)
+          brew update
           brew uninstall --ignore-dependencies dpkg || true
-          # Install ldid, make, dan dpkg resmi dari brew
           brew install ldid make dpkg
-          # Link-kan dpkg agar bisa dipanggil langsung
           brew link --overwrite dpkg
+          # Verifikasi sesuai saran kamu
+          dpkg --version
 
       - name: Set PATH environment variable
         run: |
           echo "$(brew --prefix make)/libexec/gnubin" >> $GITHUB_PATH
           echo "$(brew --prefix dpkg)/bin" >> $GITHUB_PATH
-          echo "$(brew --prefix dpkg)/sbin" >> $GITHUB_PATH
 
       - name: Setup Theos
         uses: actions/checkout@v5
@@ -81,16 +80,12 @@ jobs:
       - name: Download iOS SDK
         if: steps.SDK.outputs.cache-hit != 'true'
         run: |
-          # Buat folder tujuan
           mkdir -p ${{ github.workspace }}/theos/sdks
-          # Download SDK versi spesifik langsung (format tarball lebih aman)
           curl -LO https://github.com/theos/sdks/archive/master.tar.gz
           tar -xzf master.tar.gz
-          # Pindahkan semua isi folder sdks ke tempat yang benar
           mv sdks-master/*.sdk ${{ github.workspace }}/theos/sdks/
-          # Bersihkan sampah
           rm -rf sdks-master master.tar.gz
-
+          
       - name: Setup Theos Jailed
         uses: actions/checkout@v5
         with:
@@ -107,14 +102,12 @@ jobs:
         id: prepare_youtube
         run: |
           mkdir -p main
-          # Tembak langsung ke input tanpa variabel perantara yang rawan kosong
+          # Langsung tembak ke input agar tidak terjadi variabel kosong
           wget "${{ github.event.inputs.decrypted_youtube_url }}" --quiet --no-verbose -O main/YouTube.ipa
           cd main
           mv YouTube.ipa YouTube.zip
           unzip -q YouTube.zip
           youtube_version=$(defaults read "$(pwd)/Payload/YouTube.app/Info" CFBundleVersion)
-          echo "==> YouTube v$youtube_version downloaded!"
-          sed -i '' "17s#.*#YOUTUBE_VERSION = ${youtube_version}#g" Makefile
           echo "youtube_version=${youtube_version}" >> $GITHUB_OUTPUT
         env:
           THEOS: ${{ github.workspace }}/theos
