@@ -50,13 +50,18 @@ jobs:
 
       - name: Install Dependencies
         run: |
-          # Tambahkan || true agar jika dpkg tidak ada, proses tetap lanjut
+          # Hapus yang lama kalau ada (abaikan kalau error)
           brew uninstall --ignore-dependencies dpkg || true
-          brew install ldid make
-          brew install https://raw.githubusercontent.com/uronchu/homebrew-tap/master/Formula/dpkg.rb
+          # Install ldid, make, dan dpkg resmi dari brew
+          brew install ldid make dpkg
+          # Link-kan dpkg agar bisa dipanggil langsung
+          brew link --overwrite dpkg
 
       - name: Set PATH environment variable
-        run: echo "$(brew --prefix make)/libexec/gnubin" >> $GITHUB_PATH 
+        run: |
+          echo "$(brew --prefix make)/libexec/gnubin" >> $GITHUB_PATH
+          echo "$(brew --prefix dpkg)/bin" >> $GITHUB_PATH
+          echo "$(brew --prefix dpkg)/sbin" >> $GITHUB_PATH
 
       - name: Setup Theos
         uses: actions/checkout@v5
