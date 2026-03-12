@@ -98,16 +98,19 @@ jobs:
       - name: Prepare YouTube iPA
         id: prepare_youtube
         run: |
-          mkdir -p main
-          wget "${{ github.event.inputs.decrypted_youtube_url }}" --quiet --no-verbose -O main/YouTube.ipa
+          # Gunakan variabel yang sudah di-export di langkah sebelumnya (URL_YT)
+          wget "$URL_YT" --quiet --no-verbose -O main/YouTube.ipa
           cd main
           mv YouTube.ipa YouTube.zip
           unzip -q YouTube.zip
           youtube_version=$(defaults read "$(pwd)/Payload/YouTube.app/Info" CFBundleVersion)
+          echo "==> YouTube v$youtube_version downloaded!"
+          sed -i '' "17s#.*#YOUTUBE_VERSION = ${youtube_version}#g" Makefile
           echo "youtube_version=${youtube_version}" >> $GITHUB_OUTPUT
         env:
           THEOS: ${{ github.workspace }}/theos
-
+          URL_YT: ${{ env.URL_YT }}
+          
       - name: Fix compiling & Build Package
         id: build_package
         run: |
