@@ -81,15 +81,15 @@ jobs:
       - name: Download iOS SDK
         if: steps.SDK.outputs.cache-hit != 'true'
         run: |
-          mkdir -p $THEOS/sdks
-          git clone --quiet -n --depth=1 --filter=tree:0 https://github.com/theos/sdks/
-          cd sdks
-          git sparse-checkout set --no-cone iPhoneOS${{ github.event.inputs.sdk_version }}.sdk
-          git checkout
-          # Pindahkan folder secara spesifik
-          mv iPhoneOS${{ github.event.inputs.sdk_version }}.sdk $THEOS/sdks/
-        env:
-          THEOS: ${{ github.workspace }}/theos
+          # Buat folder tujuan
+          mkdir -p ${{ github.workspace }}/theos/sdks
+          # Download SDK versi spesifik langsung (format tarball lebih aman)
+          curl -LO https://github.com/theos/sdks/archive/master.tar.gz
+          tar -xzf master.tar.gz
+          # Pindahkan semua isi folder sdks ke tempat yang benar
+          mv sdks-master/*.sdk ${{ github.workspace }}/theos/sdks/
+          # Bersihkan sampah
+          rm -rf sdks-master master.tar.gz
 
       - name: Setup Theos Jailed
         uses: actions/checkout@v5
